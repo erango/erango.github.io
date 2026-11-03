@@ -3,21 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Coo · all your mail and calendars in one calm place</title>
+<title>Coo · every business, every inbox, one calm Mac app</title>
 <link rel="canonical" href="https://erango.github.io/coo/">
-<meta name="description" content="Coo is a fast, friendly Mac app for all your email and calendars: Outlook, Gmail and iCloud together in one inbox. Free.">
+<meta name="description" content="Coo is a fast, friendly Mac app for all your email and calendars: Outlook, Gmail and iCloud addresses together in one inbox, and your AI assistant can work across every one of them. Free.">
 <meta name="google-site-verification" content="XKy52OJWEkNQ8rT_CfxA-N8Si_p1KW-_0ThFe5PhQhM">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <meta property="og:title" content="Coo for Mac">
-<meta property="og:description" content="All your email and calendars in one calm place. Free.">
+<meta property="og:description" content="Every business. Every inbox. One calm Mac app, and your AI assistant can work across all of them. Free.">
 <meta property="og:image" content="icon-512.png">
 <style>
   :root {
-    --navy: #1F3A5C; --teal: #2FB596; --teal-soft: #E3F6F0; --amber: #F2B44B;
-    --bg: #FBFAF7; --card: #FFFFFF; --text: #1B2430; --muted: #5C6773; --line: #E8E5DE;
+    --navy: #1F3A5C; --teal: #1E8C73; --teal-bright: #2FB596; --teal-soft: #E3F6F0; --amber: #F2B44B;
+    --bg: #FBFAF7; --card: #FFFFFF; --side: #F3F1EC; --text: #1B2430; --text-2: #3E4955; --muted: #5C6773; --line: #E8E5DE; --line-2: #EFECE6;
+    --bird: #FFFFFF; --bird-edge: #D9D6CF;
+    --bakery: #C2603A; --studio: #2D6BD8; --rentals: #7A4CC2;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #11161D; --card: #182029; --text: #EEF1F4; --muted: #9AA5B1; --line: #26303B; --teal-soft: #173A33; }
+    :root {
+      --bg: #11161D; --card: #182029; --side: #141B23; --text: #EEF1F4; --text-2: #C7CFD8; --muted: #9AA5B1; --line: #26303B; --line-2: #222B35;
+      --teal: #3CCFAE; --teal-soft: #173A33; --bird: #EDEEF0; --bird-edge: #3A4552;
+      --bakery: #E48A63; --studio: #7AA7FF; --rentals: #B38CF0;
+    }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; overflow-x: hidden; }
@@ -25,95 +31,226 @@
     margin: 0; background: var(--bg); color: var(--text);
     font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, sans-serif;
   }
-  main { max-width: 880px; margin: 0 auto; padding: 0 20px 64px; }
+  main { max-width: 1040px; margin: 0 auto; padding: 0 20px 64px; }
   a { color: var(--teal); }
+  h2 { font-size: 30px; letter-spacing: -0.015em; margin: 64px 0 14px; text-align: center; }
+  .sub { margin: 0 auto 22px; max-width: 620px; text-align: center; color: var(--muted); }
 
-  .hero { text-align: center; padding: 64px 0 40px; }
-  .bird-wrap { position: relative; width: 132px; height: 132px; margin: 0 auto 22px; }
-  .bird-wrap img { width: 132px; height: 132px; display: block; filter: drop-shadow(0 10px 24px rgba(31,58,92,.25)); animation: bob 4s ease-in-out infinite; }
+  /* Coo, the pigeon */
+  /* The drawing is defined once (#coo) and reused; per-use colors come in
+     through custom properties, which reach inside <use>. */
+  #coo .body { fill: var(--bird-fill, var(--bird)); stroke: var(--bird-stroke, var(--bird-edge)); stroke-width: .8; }
+  #coo .wing { fill: #B9C3CF; }
+  #coo .ring { fill: none; stroke: var(--teal-bright); stroke-width: 3; stroke-linecap: round; }
+  #coo .beak { fill: var(--amber); }
+  #coo .legs { fill: none; stroke: var(--amber); stroke-width: 2.4; stroke-linecap: round; }
+  .bird .eye { fill: #1F3A5C; }
+  .bird .shut { fill: none; stroke: #1F3A5C; stroke-width: 1.2; stroke-linecap: round; }
   @keyframes bob { 50% { transform: translateY(-6px) rotate(-1.5deg); } }
+  @keyframes pop { 0%, 55% { opacity: 0; transform: translateY(4px) scale(.9); } 65%, 90% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+  @keyframes peck { 0%, 70%, 100% { transform: rotate(0); } 78% { transform: rotate(14deg); } 86% { transform: rotate(0); } }
+
+  /* Hero */
+  .hero { display: flex; flex-wrap: wrap; align-items: center; gap: 48px; padding: 64px 0 24px; }
+  .hero__text { flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+  .mascot { position: relative; width: 104px; height: 96px; }
+  .mascot svg { display: block; width: 104px; height: 96px; filter: drop-shadow(0 10px 18px rgba(31,58,92,.22)); animation: bob 4s ease-in-out infinite; }
   .coo-bubble {
-    position: absolute; right: -54px; top: -6px; background: var(--card); color: var(--navy);
-    border: 1px solid var(--line); border-radius: 14px 14px 14px 4px; padding: 4px 10px;
-    font-weight: 600; font-size: 15px; animation: pop 4s ease-in-out infinite; box-shadow: 0 4px 14px rgba(0,0,0,.06);
+    position: absolute; left: 92px; top: -4px; background: var(--card); color: var(--navy);
+    border: 1px solid var(--line); border-radius: 14px 14px 14px 4px; padding: 3px 10px;
+    font-weight: 650; font-size: 15px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.06); animation: pop 4s ease-in-out infinite;
   }
   @media (prefers-color-scheme: dark) { .coo-bubble { color: var(--text); } }
-  @keyframes pop { 0%, 55% { opacity: 0; transform: translateY(4px) scale(.9); } 65%, 90% { opacity: 1; transform: none; } 100% { opacity: 0; } }
-  h1 { font-size: clamp(34px, 6vw, 52px); line-height: 1.08; letter-spacing: -0.025em; margin: 0 0 14px; }
-  .lede { font-size: clamp(18px, 2.4vw, 21px); color: var(--muted); max-width: 560px; margin: 0 auto 30px; }
-
+  .badge { align-self: flex-start; font-size: 14px; font-weight: 600; color: var(--teal); background: var(--teal-soft); padding: 4px 12px; border-radius: 999px; }
+  h1 { font-size: clamp(38px, 6vw, 54px); line-height: 1.06; letter-spacing: -0.025em; margin: 0; }
+  .lede { font-size: clamp(18px, 2.3vw, 20px); color: var(--muted); max-width: 500px; margin: 0; }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
   .download {
-    display: inline-flex; align-items: center; gap: 12px; padding: 16px 28px; border-radius: 16px;
-    background: var(--navy); color: #fff; text-decoration: none; font-weight: 650; font-size: 19px;
+    display: inline-flex; align-items: center; gap: 10px; padding: 15px 26px; border-radius: 16px;
+    background: var(--navy); color: #fff; text-decoration: none; font-weight: 650; font-size: 18px;
     box-shadow: 0 8px 22px rgba(31,58,92,.28); transition: transform .15s ease, box-shadow .15s ease;
   }
   .download:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(31,58,92,.34); }
-  @media (prefers-color-scheme: dark) { .download { background: var(--teal); color: #08211B; } }
-  .download svg { width: 22px; height: 22px; }
-  .fine { margin-top: 12px; font-size: 14.5px; color: var(--muted); }
-  .not-mac { display: none; margin: 18px auto 0; max-width: 460px; padding: 12px 16px; border-radius: 12px; background: var(--teal-soft); font-size: 15px; }
+  @media (prefers-color-scheme: dark) { .download { background: var(--teal-bright); color: #08211B; } }
+  .download svg { width: 20px; height: 20px; }
+  .fine { font-size: 14.5px; color: var(--muted); }
+  .not-mac { display: none; max-width: 460px; padding: 12px 16px; border-radius: 12px; background: var(--teal-soft); font-size: 15px; }
 
-  h2 { font-size: 26px; letter-spacing: -0.015em; margin: 56px 0 18px; text-align: center; }
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: step; }
-  .step, .feature, details {
-    background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px;
-  }
+  /* The little app window in the hero */
+  .window { flex: 1 1 420px; min-width: 0; display: flex; background: var(--card); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 24px 60px rgba(31,58,92,.12); overflow: hidden; }
+  .window__side { flex: none; width: 160px; background: var(--side); padding: 16px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--text-2); }
+  .window__side span { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; }
+  .window__side span.on { background: var(--card); color: var(--text); font-weight: 600; }
+  .window__side em { margin-left: auto; font-style: normal; color: var(--muted); }
+  .window__side span.on em { color: var(--teal); }
+  .dot { width: 8px; height: 8px; border-radius: 4px; flex: none; background: var(--c, var(--navy)); }
+  .window__list { flex: 1; min-width: 0; }
+  .row { padding: 12px 16px; border-bottom: 1px solid var(--line-2); }
+  .row div { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+  .row b { font-weight: 600; }
+  .row time { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .row p { margin: 2px 0 0; font-size: 13px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; display: flex; flex-direction: column; gap: 6px; }
+  .card svg { width: 26px; height: 26px; stroke: var(--teal); }
+  .card b { font-size: 17.5px; }
+  .card span { color: var(--muted); font-size: 15.5px; }
+
+  /* For your AI assistant */
+  .agent { margin-top: 72px; background: #1F3A5C; color: #C9D3DE; border-radius: 28px; padding: 48px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center; }
+  .agent__text { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+  .kicker { font-size: 13px; font-weight: 600; color: var(--amber); letter-spacing: .04em; text-transform: uppercase; }
+  .agent h2 { margin: 0; text-align: left; color: #fff; font-size: 32px; line-height: 1.15; }
+  .agent p { margin: 0; }
+  .checks { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .checks li { display: flex; gap: 12px; align-items: flex-start; }
+  .checks svg { flex: none; width: 20px; height: 20px; margin-top: 3px; stroke: #2FB596; }
+  .checks b { color: #fff; }
+  .chat { position: relative; flex: 1 1 380px; min-width: 0; background: #fff; color: #1B2430; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 15px; box-shadow: 0 24px 60px rgba(0,0,0,.25); }
+  .chat .perch { position: absolute; right: 22px; top: -50px; width: 62px; height: 58px; transform-origin: 60% 85%; animation: peck 5s ease-in-out infinite; }
+  .chat .perch { --bird-fill: #fff; --bird-stroke: transparent; }
+  .chat .me { align-self: flex-end; max-width: 85%; background: #F3F1EC; border-radius: 16px 16px 4px 16px; padding: 10px 14px; }
+  .chat .item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid #EFECE6; border-radius: 12px; font-size: 14.5px; color: #3E4955; }
+  .chip { flex: none; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; color: var(--c); background: color-mix(in srgb, var(--c) 12%, #fff); }
+  .chat .muted { font-size: 14.5px; color: #5C6773; }
+
+  /* Steps, FAQ, footer */
+  .steps { counter-reset: step; }
   .step::before {
     counter-increment: step; content: counter(step); display: inline-grid; place-items: center;
-    width: 32px; height: 32px; border-radius: 50%; background: var(--amber); color: #3A2A06; font-weight: 700; margin-bottom: 10px;
+    width: 32px; height: 32px; border-radius: 50%; background: var(--amber); color: #3A2A06; font-weight: 700; margin-bottom: 4px;
   }
-  .step b, .feature b { display: block; font-size: 17.5px; margin-bottom: 4px; }
-  .step span, .feature span { color: var(--muted); font-size: 15.5px; }
-  .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .feature { display: flex; gap: 14px; align-items: flex-start; }
-  .emoji { font-size: 26px; line-height: 1; flex: none; }
   .faq { display: flex; flex-direction: column; gap: 10px; max-width: 680px; margin: 0 auto; }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; }
   summary { cursor: pointer; font-weight: 600; list-style: none; }
   summary::-webkit-details-marker { display: none; }
   summary::after { content: "＋"; float: right; color: var(--muted); }
   details[open] summary::after { content: "－"; }
   details p { margin: 10px 0 0; color: var(--muted); font-size: 15.5px; }
-  footer { text-align: center; color: var(--muted); font-size: 14px; margin-top: 56px; }
+  footer { margin-top: 64px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; color: var(--muted); font-size: 14px; }
+  footer svg { width: 56px; height: 52px; }
   footer a { color: var(--muted); }
 
   @media (max-width: 720px) {
-    .steps, .features { grid-template-columns: 1fr; }
-    .hero { padding-top: 40px; }
-    .coo-bubble { right: -40px; }
+    .hero { padding-top: 36px; gap: 32px; }
+    .agent { padding: 28px 22px; }
+    .window__side { width: 128px; }
   }
-  @media (prefers-reduced-motion: reduce) { .bird-wrap img, .coo-bubble { animation: none; } .coo-bubble { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .mascot svg, .coo-bubble, .chat .perch { animation: none; }
+    .coo-bubble { opacity: 1; }
+  }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="coo">
+      <path class="body" d="M22 9C28 9 30 14 31 20C36 22 48 26 60 33L58 38C50 42 40 46 30 45C20 44 13 38 13 30C13 25 15 22 16 20C14 18 13 15 14 13C15 10 18 9 22 9Z"/>
+      <path class="wing" d="M30 26C38 27 48 30 56 35C46 38 36 38 30 34Z"/>
+      <path class="ring" d="M16 20C18 24 22 26 27 25"/>
+      <path class="beak" d="M14 13.8L8 16.4L14 17.6Z"/>
+      <path class="legs" d="M28 45V54M35 45V54"/>
+    </g>
+  </defs>
+</svg>
 <main>
   <section class="hero">
-    <div class="bird-wrap"><img src="icon.svg" alt="Coo, a small white pigeon"><span class="coo-bubble" aria-hidden="true">coo!</span></div>
-    <h1>All your mail and calendars,<br>in one calm place.</h1>
-    <p class="lede">Coo brings your Outlook, Gmail and iCloud accounts together in one quick, friendly inbox, with your calendars right next to it. Free for Mac.</p>
-    <a class="download" id="download" href="https://github.com/erango/coo-releases/releases/latest">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
-      <span id="download-label">Download for Mac</span>
-    </a>
-    <div class="fine" id="download-fine">Free · macOS 13 or later · Apple Silicon and Intel</div>
-    <div class="not-mac" id="not-mac">Coo is a Mac app. Open this page on your Mac to download it.</div>
+    <div class="hero__text">
+      <div class="mascot">
+        <svg class="bird" viewBox="6 6 56 52" role="img" aria-label="Coo, a small white pigeon"><use href="#coo"/><circle class="eye" cx="19.5" cy="14" r="1.5"/></svg>
+        <span class="coo-bubble" aria-hidden="true">coo!</span>
+      </div>
+      <span class="badge">Free for Mac</span>
+      <h1>Every business.<br>Every inbox.<br>One calm Mac app.</h1>
+      <p class="lede">Coo puts all your Outlook, Gmail and iCloud addresses in one fast, beautiful inbox, and lets your AI assistant work across every one of them.</p>
+      <div class="cta">
+        <a class="download" id="download" href="https://github.com/erango/coo-releases/releases/latest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
+          <span id="download-label">Download for Mac</span>
+        </a>
+        <span class="fine" id="download-fine">Free · macOS 13 or later · Apple Silicon and Intel</span>
+      </div>
+      <div class="not-mac" id="not-mac">Coo is a Mac app. Open this page on your Mac to download it.</div>
+    </div>
+    <div class="window" aria-hidden="true">
+      <div class="window__side">
+        <span class="on"><i class="dot"></i>All inboxes<em>12</em></span>
+        <span><i class="dot" style="--c: var(--bakery)"></i>Bakery<em>5</em></span>
+        <span><i class="dot" style="--c: var(--studio)"></i>Studio<em>4</em></span>
+        <span><i class="dot" style="--c: var(--rentals)"></i>Rentals<em>3</em></span>
+        <span><i class="dot" style="--c: var(--teal-bright)"></i>Personal</span>
+      </div>
+      <div class="window__list">
+        <div class="row"><div><i class="dot" style="--c: var(--bakery)"></i><b>Northside Mills</b><time>9:41</time></div><p>Flour delivery moved to Thursday</p></div>
+        <div class="row"><div><i class="dot" style="--c: var(--studio)"></i><b>Lena Ortiz</b><time>9:12</time></div><p>Logo round 2: two options attached</p></div>
+        <div class="row"><div><i class="dot" style="--c: var(--rentals)"></i><b>Booking request</b><time>8:55</time></div><p>Apartment 3B, Dec 12 to 19</p></div>
+        <div class="row"><div><i class="dot" style="--c: var(--bakery)"></i><b>City permits</b><time>8:20</time></div><p>Your renewal is due next week</p></div>
+        <div class="row"><div><i class="dot" style="--c: var(--teal-bright)"></i><b>Mom</b><time>7:48</time></div><p>Dinner on Friday?</p></div>
+      </div>
+    </div>
   </section>
 
-  <h2>Getting started takes a minute</h2>
-  <div class="steps">
-    <div class="step"><b>Download</b><span>Click the button above. A file called “Coo” lands in your Downloads.</span></div>
-    <div class="step"><b>Drag to Applications</b><span>Open it and drag the little pigeon onto the Applications folder.</span></div>
-    <div class="step"><b>Add your accounts</b><span>Open Coo, pick Microsoft, Google or iCloud, and sign in. Add as many as you like.</span></div>
+  <h2>Run more than one thing?</h2>
+  <p class="sub">A shop, a side business, a rental, a family. Each has its own address, and you shouldn't need five tabs to keep up with them.</p>
+  <div class="grid">
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/><circle cx="19" cy="17" r="2"/></svg>
+      <b>All your addresses, together</b>
+      <span>Microsoft 365, Outlook.com, Gmail, Google Workspace and iCloud, as many as you have, in one unified inbox.</span>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg>
+      <b>No double-booking across businesses</b>
+      <span>An invitation to one business shows clashes with every other calendar you have, before you say yes.</span>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l6-6v4h8a2 2 0 0 1 2 2v6"/><path d="M10 18l-6-6"/></svg>
+      <b>The right address, every time</b>
+      <span>Replies go out from the address the mail came to, with that address's own signature.</span>
+    </div>
   </div>
 
-  <h2>Why people like it</h2>
-  <div class="features">
-    <div class="feature"><span class="emoji">📬</span><div><b>One inbox for everything</b><span>Work and personal mail side by side, each account with its own color so you always know where a message came from.</span></div></div>
-    <div class="feature"><span class="emoji">📅</span><div><b>Your calendars, too</b><span>See your day next to your mail, answer invitations, and join video calls with one click when it's time.</span></div></div>
-    <div class="feature"><span class="emoji">⚡️</span><div><b>Really fast</b><span>Your mail is kept on your Mac, so opening, searching and switching is instant, even offline.</span></div></div>
-    <div class="feature"><span class="emoji">🔒</span><div><b>Private by design</b><span>Coo talks straight to Microsoft, Google and Apple. Your mail never passes through anyone else's servers.</span></div></div>
-    <div class="feature"><span class="emoji">✍️</span><div><b>Writes your language</b><span>Hebrew, Arabic and English all read and type the right way round, even mixed in one message.</span></div></div>
-    <div class="feature"><span class="emoji">🤖</span><div><b>Works with your AI assistant</b><span>Let Claude or another assistant find that email, sum up a thread, check your week or draft a reply. Read-only unless you say otherwise, and it all stays on your Mac. Set it up in one click: Help › Connect an AI Agent.</span></div></div>
-    <div class="feature"><span class="emoji">🎨</span><div><b>Easy on the eyes</b><span>Light and dark mode, a handful of cozy themes, and gentle sounds you can pick or turn off.</span></div></div>
+  <section class="agent">
+    <div class="agent__text">
+      <span class="kicker">For your AI assistant</span>
+      <h2>Your assistant, across every inbox</h2>
+      <p>Connect Claude or another assistant to Coo once, and it can search, sum up and draft across all your accounts, not just one.</p>
+      <ul class="checks">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg><span><b>One connection, every account.</b> Set it up in one click from Help › Connect an AI Agent.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg><span><b>You stay in charge.</b> Read-only unless you allow more, and replies start as drafts.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg><span><b>It waits for you.</b> Ask Claude Code to watch for a reply, a sender or a subject, and it acts when that mail arrives.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg><span><b>Stays on your Mac.</b> Sign-ins never leave Coo, and your mail goes only to the assistant you chose.</span></li>
+      </ul>
+    </div>
+    <div class="chat" aria-label="Example: asking an assistant about mail across several businesses">
+      <svg class="bird perch" viewBox="6 6 56 52" aria-hidden="true"><use href="#coo"/><circle class="eye" cx="19.5" cy="14" r="1.5"/></svg>
+      <div class="me">Anything urgent across my businesses this morning?</div>
+      <span>Three things need you today:</span>
+      <div class="item"><span class="chip" style="--c: #C2603A">Bakery</span><span>Northside Mills moved the flour delivery to Thursday; Friday orders may be short.</span></div>
+      <div class="item"><span class="chip" style="--c: #7A4CC2">Rentals</span><span>A booking request for 3B, Dec 12 to 19, is waiting for a yes.</span></div>
+      <div class="item"><span class="chip" style="--c: #2D6BD8">Studio</span><span>Lena sent logo round 2 and asked for feedback by tomorrow.</span></div>
+      <span class="muted">Want me to draft replies for the first two?</span>
+    </div>
+  </section>
+
+  <h2>A mail app you'll enjoy opening</h2>
+  <div class="grid">
+    <div class="card"><b>Your calendars, too</b><span>See your day next to your mail, answer invitations, and join video calls with one click.</span></div>
+    <div class="card"><b>Really fast</b><span>Your mail is kept on your Mac, so opening, searching and switching is instant, even offline.</span></div>
+    <div class="card"><b>Private, even with AI</b><span>No Coo servers in between: your mail comes straight to your Mac. Your assistant gets only what it asks Coo for, read-only unless you say otherwise, and your sign-ins never leave Coo.</span></div>
+    <div class="card"><b>Make it yours</b><span>Themes, layouts, quote styles, shortcuts and sounds: set it up the way you like to work.</span></div>
+    <div class="card"><b>Writes your language</b><span>Hebrew, Arabic and English read and type the right way round, even mixed in one message.</span></div>
+    <div class="card"><b>Free</b><span>No subscription, no ads.</span></div>
+  </div>
+
+  <h2>Getting started takes a minute</h2>
+  <div class="grid steps">
+    <div class="card step"><b>Download</b><span>Click the button above. A file called “Coo” lands in your Downloads.</span></div>
+    <div class="card step"><b>Drag to Applications</b><span>Open it and drag the little pigeon onto the Applications folder.</span></div>
+    <div class="card step"><b>Add every account</b><span>Open Coo, pick Microsoft, Google or iCloud, and sign in. Add as many as you have.</span></div>
   </div>
 
   <h2>Questions</h2>
@@ -121,15 +258,18 @@
     <details><summary>Is it safe to install?</summary><p>Yes. Coo is signed by its developer and checked by Apple (“notarized”), so your Mac opens it without warnings. Passwords and sign-ins are kept in your Mac's Keychain.</p></details>
     <details><summary>Does it cost anything?</summary><p>No. Coo is free.</p></details>
     <details><summary>Google says “Google hasn't verified this app”. Is that OK?</summary><p>Yes. Coo is a small independent app that hasn't been through Google's paid review yet, so Google shows that notice when you add a Gmail account. Click <b>Advanced</b>, then <b>Go to Coo</b>, and allow access. Coo only talks to Google from your Mac; your mail never goes anywhere else. Microsoft and iCloud accounts don't show this.</p></details>
-    <details><summary>Which accounts work?</summary><p>Microsoft 365 and Outlook.com, Gmail and Google Workspace, and iCloud. Most people connect a few: work, personal, maybe a family one.</p></details>
-    <details><summary>How do updates work?</summary><p>Automatically. Coo checks for new versions quietly and installs them the next time you quit, so you're always up to date.</p></details>
+    <details><summary>Which accounts work?</summary><p>Microsoft 365 and Outlook.com, Gmail and Google Workspace, and iCloud. Add as many as you have: one per business, a personal one, a family one.</p></details>
+    <details><summary>Can my AI assistant use all my accounts?</summary><p>Yes. Open Coo, choose Help › Connect an AI Agent, and copy the one line it shows (or click “Add to Claude Code”). Your assistant then sees every account you've added to Coo through that one connection. By default it can only read and search; it can only send, archive or answer invites if you allow it, and even then replies start as drafts. Developers: run <code>coo agent-help</code>.</p></details>
+    <details><summary>Can my assistant keep an eye on my mail for me?</summary><p>With Claude Code, yes: ask it to watch for a reply on a conversation, mail from someone, or a subject, and it's told the moment that mail arrives in Coo. You can ask it to stop at any time.</p></details>
+    <details><summary>How do updates work?</summary><p>Automatically. Coo checks for new versions quietly and installs them when you restart it, so you're always up to date.</p></details>
     <details><summary>What does Coo see of my mail?</summary><p>Only your Mac sees it. Coo keeps a copy on your computer so it's fast, and talks directly to your email provider. Crash reports, if something goes wrong, are anonymous: addresses and message text are removed before they leave your Mac, and you can switch them off in Settings. <a href="privacy.html">Privacy details</a>.</p></details>
-    <details><summary>Can my AI assistant use it?</summary><p>Yes. Coo is built to work with assistants like Claude. Open Coo, choose Help › Connect an AI Agent, and copy the one line it shows (or click “Add to Claude Code”). By default the assistant can only read and search; it can only send, archive or answer invites if you allow it, and even then replies start as drafts. Everything runs on your Mac. Developers: run <code>coo agent-help</code>.</p></details>
     <details><summary>How do I remove it?</summary><p>In Coo, open Settings and sign out of your accounts, then drag Coo from Applications to the Trash.</p></details>
   </div>
 
   <footer>
-    Made with care · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a>
+    <svg class="bird" viewBox="6 6 56 52" role="img" aria-label="Coo, asleep"><use href="#coo"/><path class="shut" d="M17.6 14.4Q19.5 16 21.4 14.4"/></svg>
+    <span>All caught up? Coo naps too.</span>
+    <span>Made with care · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></span>
   </footer>
 </main>
 <script>
@@ -150,7 +290,7 @@
       const mb = Math.max(1, Math.round(dmg.size / 1e6));
       fine.textContent = `Free · version ${rel.tag_name.replace(/^v/, '')} · ${mb} MB · macOS 13 or later`;
     } catch (_) {
-      fine.textContent = 'Free · macOS 13 or later · first release coming very soon';
+      fine.textContent = 'Free · macOS 13 or later · Apple Silicon and Intel';
     }
   })();
 </script>
