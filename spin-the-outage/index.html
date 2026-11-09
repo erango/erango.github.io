@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spin the Outage</title>
+<meta name="description" content="What GitHub incident will you get today? A carnival prize wheel weighted by 297 real incidents from githubstatus.com.">
+<meta property="og:title" content="Spin the Outage">
+<meta property="og:description" content="What GitHub incident will you get today? Every spin a winner.*">
+<meta name="theme-color" content="#1B0B3A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23FFC93C'/%3E%3Cpath d='M16 16 16 3A13 13 0 0 1 29 16Z' fill='%23FF3D7F'/%3E%3Cpath d='M16 16 29 16A13 13 0 0 1 16 29Z' fill='%2318C8B4'/%3E%3Cpath d='M16 16 16 29A13 13 0 0 1 3 16Z' fill='%237B5CFF'/%3E%3Cpath d='M16 16 3 16A13 13 0 0 1 16 3Z' fill='%23FF7A1A'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23FFF4E0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Bungee+Shade&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1B0B3A; --panel:#2A1259; --deep:#12062A; --line:#4A2A8C;
+  --gold:#FFC93C; --gold-d:#E0A21A; --pink:#FF3D7F; --pink-d:#B0124A; --teal:#18C8B4;
+  --cream:#FFF4E0; --lav:#C9B8F0; --mute:#A893DA; --red:#FF3D3D;
+  --bulb-on:#FFF6C8; --bulb-glow:rgba(255,214,102,.85); --bulb-off:#9C7A2E;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  min-height:100vh; background:var(--bg);
+  background-image:radial-gradient(#3A1F72 1.5px,transparent 1.5px); background-size:28px 28px;
+  color:var(--cream); font-family:'Space Grotesk',system-ui,sans-serif;
+  display:flex; flex-direction:column; align-items:center; gap:36px; padding:40px 16px 32px;
+  overflow-x:hidden;
+}
+body.siren{ --bulb-on:#FFD0D0; --bulb-glow:rgba(255,61,61,.95); background-image:radial-gradient(#5A1238 1.5px,transparent 1.5px) }
+body.win{ --bulb-on:var(--win,#FFF6C8); --bulb-glow:var(--win,#FFD666) }
+a{color:var(--gold)} a:hover{color:#FFE48A}
+button{font:inherit; cursor:pointer}
+button:disabled{cursor:not-allowed; opacity:.55}
+.hub:disabled{opacity:1; filter:saturate(.6)}
+:focus-visible{outline:3px solid var(--teal); outline-offset:3px}
+
+/* marquee */
+.marquee{position:relative; width:100%; max-width:1040px; background:var(--panel); border:6px solid var(--gold); border-radius:28px; padding:40px 32px 36px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px}
+.bulbs{position:absolute; left:20px; right:20px; display:flex; justify-content:space-between; pointer-events:none}
+.bulbs.top{top:-13px} .bulbs.bot{bottom:-13px}
+.bulb-h{display:block; width:18px; height:18px; border-radius:50%; background:var(--bulb-off); box-shadow:0 0 0 3px #7A5A1A; transition:background .06s}
+.bulb-h.on{background:var(--bulb-on); box-shadow:0 0 0 3px var(--gold-d),0 0 14px 5px var(--bulb-glow)}
+.bulb-h.dud,.bulb-h.dud.on{background:#5A4520; box-shadow:0 0 0 3px #4A3A1A; pointer-events:auto}
+.bulb-h.dud:hover{animation:flicker .9s steps(1) infinite}
+@keyframes flicker{0%,40%,60%{background:#5A4520}45%,70%{background:var(--bulb-on); box-shadow:0 0 0 3px var(--gold-d),0 0 14px 5px var(--bulb-glow)}}
+.eyebrow{margin:0; font-size:14px; letter-spacing:.3em; text-transform:uppercase; color:var(--teal); font-weight:700}
+h1{margin:0; font-family:'Bungee Shade','Bungee',sans-serif; font-weight:400; font-size:clamp(46px,9vw,88px); line-height:.95; color:var(--gold)}
+h1 span{color:var(--pink)}
+.sub{margin:6px 0 0; font-family:'Bungee',sans-serif; font-size:clamp(17px,2.6vw,26px)}
+.tag{margin:0; font-size:16px; color:var(--lav)} .tag span{color:#8F7BC4}
+
+/* main */
+main{width:100%; max-width:1240px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:48px}
+.wheel-wrap{position:relative; width:min(660px,94vw); aspect-ratio:1; flex:0 0 auto; margin-top:12px; touch-action:none}
+.wheel-wrap svg{width:100%; height:100%; display:block; user-select:none; -webkit-user-select:none}
+#spinner{cursor:grab}
+.dragging #spinner{cursor:grabbing}
+.lbl{font:700 13.5px 'Space Grotesk',sans-serif; letter-spacing:.03em; text-transform:uppercase; pointer-events:none}
+.stamp{display:none; font:400 15px 'Bungee',sans-serif; fill:var(--teal); pointer-events:none}
+.dim{display:none; fill:rgba(18,6,42,.62); pointer-events:none}
+.nocopilot .copilot .lbl{display:none}
+.nocopilot .copilot .stamp,.nocopilot .copilot .dim{display:inline}
+.rimbulb{fill:var(--bulb-off)}
+.rimbulb.on{fill:var(--bulb-on); filter:url(#glow)}
+.rimbulb.dud,.rimbulb.dud.on{fill:#5A4520; filter:none}
+.hub{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:18%; aspect-ratio:1; border-radius:50%; border:clamp(4px,1.2vw,8px) solid var(--gold); background:var(--pink); color:var(--cream); font-family:'Bungee',sans-serif; font-size:clamp(13px,3vw,22px); box-shadow:0 6px 0 var(--pink-d),0 0 0 4px var(--panel); transition:transform .12s}
+.hub:not(:disabled):hover{transform:translate(-50%,-50%) scale(1.06)}
+.hub:not(:disabled):active{transform:translate(-50%,-50%) translateY(4px); box-shadow:0 2px 0 var(--pink-d),0 0 0 4px var(--panel)}
+.flapper{position:absolute; left:50%; top:-2.2%; width:8.4%; height:13%; transform-origin:50% 22%; pointer-events:none; z-index:2}
+.flap-body{position:absolute; inset:0; background:var(--red); clip-path:polygon(0 0,100% 0,100% 40%,50% 100%,0 40%); filter:drop-shadow(0 4px 0 #8A0F0F)}
+.flap-hinge{position:absolute; left:30%; top:12%; width:40%; aspect-ratio:1; border-radius:50%; background:var(--cream); border:4px solid #8A0F0F}
+
+/* panel */
+.panel{flex:1 1 360px; max-width:440px; display:flex; flex-direction:column; gap:20px}
+.row{display:flex; gap:12px; flex-wrap:wrap}
+.big{flex:1 1 auto; min-height:76px; border-radius:999px; border:0; background:var(--pink); color:var(--cream); font-family:'Bungee',sans-serif; font-size:30px; letter-spacing:.04em; box-shadow:0 8px 0 var(--pink-d); transition:transform .1s, box-shadow .1s}
+.big:not(:disabled):hover{transform:translateY(-2px); box-shadow:0 10px 0 var(--pink-d)}
+.big:not(:disabled):active{transform:translateY(6px); box-shadow:0 2px 0 var(--pink-d)}
+.round{width:76px; height:76px; border-radius:50%; border:3px solid var(--gold); background:transparent; color:var(--gold); display:flex; align-items:center; justify-content:center}
+.ghost{min-height:44px; padding:0 18px; border-radius:999px; border:2px solid var(--teal); background:transparent; color:var(--teal); font-weight:700; font-size:15px}
+.ghost.lav{border-color:var(--lav); color:var(--lav)}
+.ghost:not(:disabled):hover{background:rgba(24,200,180,.12)}
+.ghost.lav:not(:disabled):hover{background:rgba(201,184,240,.12)}
+.copilot-box{background:var(--deep); border:2px dashed var(--pink); border-radius:18px; padding:12px 18px; display:flex; flex-direction:column; gap:4px}
+.copilot-box label{display:flex; align-items:center; gap:12px; min-height:44px; cursor:pointer; font-weight:700; font-size:17px}
+.copilot-box input{width:24px; height:24px; accent-color:var(--pink); margin:0; cursor:pointer}
+.copilot-box p{margin:0; font-size:14px; color:var(--lav)}
+.copilot-box p.free{color:var(--teal)}
+.card{background:var(--panel); border-radius:22px; padding:20px 22px; border:2px solid var(--line); display:flex; flex-direction:column; gap:9px}
+.card h2{margin:0; font-family:'Bungee',sans-serif; font-weight:400; font-size:20px; color:var(--gold)}
+.card-head{display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap}
+.card-head span{font-size:13px; color:var(--mute)}
+.odd{display:flex; align-items:center; gap:12px; font-size:15px}
+.odd .sw{width:16px; height:16px; border-radius:5px; flex:0 0 auto}
+.odd .nm{flex:1 1 auto}
+.odd .pc{font-weight:700; font-variant-numeric:tabular-nums}
+.odd.off .nm{text-decoration:line-through; color:var(--mute)}
+.quote{margin:0; font-size:15px; color:var(--lav); font-style:italic}
+.quote span{font-style:normal; color:#8F7BC4}
+.stats{margin:0; font-size:15px; color:var(--lav)} .stats strong{color:var(--cream)} .stats strong.g{color:var(--gold)}
+
+/* sticker book */
+.book{width:100%; max-width:1040px}
+.bar{height:12px; border-radius:999px; background:var(--deep); overflow:hidden}
+.bar div{height:100%; background:var(--pink); border-radius:999px; transition:width .6s cubic-bezier(.3,1.6,.5,1)}
+.stickers{display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr)); gap:16px 10px; margin-top:6px}
+.sticker{display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center}
+.disc{width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Bungee',sans-serif; font-size:22px; border:3px dashed #6B4FB0; color:#8F7BC4}
+.sticker.got .disc{border:0; color:var(--deep); box-shadow:0 4px 0 #0B0320}
+.sticker.new .disc{animation:pop .7s cubic-bezier(.3,1.8,.5,1)}
+.sticker span{font-size:12px; font-weight:700; color:var(--mute)}
+.sticker.got span{color:var(--cream)}
+@keyframes pop{0%{transform:scale(.2) rotate(-40deg)}100%{transform:scale(1) rotate(0)}}
+.badge{display:none; align-self:flex-start; padding:6px 14px; border-radius:999px; background:var(--gold); color:var(--deep); font-family:'Bungee',sans-serif; font-size:14px}
+.badge.show{display:inline-block}
+
+footer{font-size:13px; color:#8F7BC4; text-align:center; max-width:760px; line-height:1.5}
+
+/* result dialog */
+dialog{border:6px solid var(--pink); border-radius:32px; background:var(--panel); color:var(--cream); padding:44px 40px 36px; width:min(680px,calc(100% - 24px)); max-height:calc(100vh - 24px); overflow:auto; text-align:center; box-shadow:0 16px 0 #0B0320}
+dialog::backdrop{background:rgba(11,3,32,.78)}
+dialog[open]{animation:drop .5s cubic-bezier(.3,1.5,.5,1)}
+@keyframes drop{0%{transform:translateY(-40px) scale(.9); opacity:0}100%{transform:none; opacity:1}}
+.r-head{margin:0; font-family:'Bungee',sans-serif; font-size:22px; color:var(--gold); letter-spacing:.08em}
+.r-kicker{margin:10px 0 0; font-size:18px; color:var(--lav)}
+.r-title{margin:8px 0 0; font-family:'Bungee Shade','Bungee',sans-serif; font-weight:400; font-size:clamp(34px,7vw,58px); line-height:1.02; color:var(--pink)}
+.r-joke{margin:12px auto 0; font-size:17px; max-width:520px; min-height:1.4em}
+.haul{display:flex; flex-direction:column; gap:10px; margin:16px 0 0}
+.ticket{padding:12px 18px; border-radius:16px; font-family:'Bungee',sans-serif; font-size:19px; text-align:left; display:flex; gap:12px; align-items:center; box-shadow:0 6px 0 rgba(11,3,32,.7)}
+.ticket:nth-child(odd){transform:rotate(-1.5deg)} .ticket:nth-child(even){transform:rotate(1.2deg)}
+.ticket small{font:700 11px 'Space Grotesk',sans-serif; text-transform:uppercase; letter-spacing:.06em; background:rgba(18,6,42,.85); color:var(--cream); padding:2px 9px; border-radius:999px; white-space:nowrap}
+.status{margin:20px 0 0; background:var(--deep); border-radius:16px; padding:16px 18px; text-align:left; border:2px dashed var(--line); display:flex; flex-direction:column; gap:8px}
+.status-top{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.chip{display:inline-block; padding:3px 10px; border-radius:999px; background:#FF7A1A; color:var(--deep); font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.06em}
+.chip.ok{background:#A6E22E} .chip.free{background:var(--teal)}
+.status-top span:last-child{font-size:13px; color:var(--mute)}
+.status p{margin:0; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.55}
+.facts{display:flex; gap:10px 24px; flex-wrap:wrap; justify-content:center; margin:18px 0 0; font-size:14px; color:var(--lav)}
+.facts strong{color:var(--cream)}
+.r-btns{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin:22px 0 0}
+.r-btns .big{flex:0 1 auto; min-height:60px; padding:0 30px; font-size:21px}
+.r-btns .ghost{min-height:60px; border-width:3px; font-size:16px}
+.r-btns .ghost.gold{border-color:var(--gold); color:var(--gold)}
+
+/* combo overlay */
+.combo{position:fixed; inset:0; display:none; align-items:center; justify-content:center; flex-direction:column; gap:8px; background:rgba(58,10,34,.55); z-index:20; pointer-events:none; text-align:center; padding:16px}
+.combo.show{display:flex}
+.combo .x{font-family:'Bungee',sans-serif; color:var(--deep); background:var(--gold); border-radius:50%; width:150px; height:150px; display:flex; align-items:center; justify-content:center; font-size:56px; box-shadow:0 0 0 8px var(--red),0 10px 0 8px #12062A; animation:spinpop .7s cubic-bezier(.3,1.6,.5,1)}
+.combo h2{margin:18px 0 0; font-family:'Bungee Shade','Bungee',sans-serif; font-weight:400; font-size:clamp(36px,8vw,72px); color:var(--red); line-height:1; text-shadow:0 4px 0 #12062A; animation:spinpop .6s .1s both cubic-bezier(.3,1.6,.5,1)}
+.combo p{margin:0; font-family:'Bungee',sans-serif; font-size:clamp(18px,3.4vw,28px); color:var(--gold); text-shadow:0 3px 0 #12062A}
+.combo .meanwhile{font:700 14px 'Space Grotesk',sans-serif; letter-spacing:.3em; text-transform:uppercase; color:#FF9E6B}
+@keyframes spinpop{0%{transform:scale(0) rotate(-200deg)}100%{transform:none}}
+
+.toast{position:fixed; left:50%; bottom:24px; transform:translate(-50%,calc(100% + 40px)); visibility:hidden; background:var(--cream); color:var(--deep); font-weight:700; padding:14px 22px; border-radius:16px; box-shadow:0 6px 0 #0B0320; max-width:calc(100% - 32px); z-index:30; transition:transform .35s cubic-bezier(.3,1.5,.5,1); text-align:center}
+.toast.show{transform:translate(-50%,0); visibility:visible}
+#confetti{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:40}
+.shake{animation:shake .5s}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px) rotate(-.4deg)}40%,60%{transform:translateX(8px) rotate(.4deg)}}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+
+@media (max-width:640px){
+  body{gap:26px; padding-top:30px}
+  .marquee{padding:28px 16px 26px; border-width:4px}
+  .bulbs{left:12px; right:12px} .bulbs.top{top:-10px} .bulbs.bot{bottom:-10px}
+  .bulb-h{width:13px; height:13px}
+  .big{font-size:24px; min-height:64px}
+  .round{width:64px; height:64px}
+  dialog{padding:34px 20px 26px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important; transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<header class="marquee">
+  <div class="bulbs top" id="bulbsTop" aria-hidden="true"></div>
+  <div class="bulbs bot" id="bulbsBot" aria-hidden="true"></div>
+  <p class="eyebrow">Live from the status page</p>
+  <h1>Spin the <span>Outage</span></h1>
+  <p class="sub">What GitHub incident will you get today?</p>
+  <p class="tag">Every spin a winner.* <span>*Winner of degraded performance.</span></p>
+</header>
+
+<main>
+  <div class="wheel-wrap" id="wheelWrap">
+    <svg id="wheel" viewBox="0 0 700 700" role="img" aria-label="Prize wheel of fifteen GitHub incident types. Drag to flick it, or press Spin.">
+      <defs>
+        <filter id="glow" x="-150%" y="-150%" width="400%" height="400%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <circle cx="350" cy="356" r="346" fill="#0B0320"/>
+      <circle cx="350" cy="350" r="346" fill="#E0A21A"/>
+      <circle cx="350" cy="350" r="338" fill="#FFC93C"/>
+      <circle cx="350" cy="350" r="314" fill="#2A1259"/>
+      <g id="rim"></g>
+      <g id="spinner"></g>
+    </svg>
+    <div class="flapper" id="flapper" aria-hidden="true"><div class="flap-body"></div><div class="flap-hinge"></div></div>
+    <button class="hub" id="hub" type="button" aria-label="Spin the wheel">SPIN</button>
+  </div>
+
+  <section class="panel" aria-label="Controls and odds">
+    <div class="row">
+      <button class="big" id="spinBtn" type="button">Spin it</button>
+      <button class="round" id="soundBtn" type="button" aria-pressed="true" aria-label="Sound on">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="wave" d="M19 5a10 10 0 0 1 0 14"/><path class="mute" d="m22 9-6 6M16 9l6 6" style="display:none"/></svg>
+      </button>
+    </div>
+    <div class="row">
+      <button class="ghost" id="dnsBtn" type="button">Blame DNS</button>
+      <button class="ghost lav" id="refreshBtn" type="button">Refresh harder</button>
+    </div>
+
+    <div class="copilot-box">
+      <label for="usesCopilot"><input id="usesCopilot" type="checkbox" checked> I'm using Copilot</label>
+      <p id="copilotHint">Copilot slices are live ammo. 31% of the wheel is your problem.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Today's odds</h2><span>297 real incidents, 12 months</span></div>
+      <div id="odds"></div>
+    </div>
+
+    <p class="quote">“If your workflow fails to start, try re-running and it is likely to work a second time.” <span>— githubstatus.com, Jan 2026</span></p>
+    <p class="stats">Your spins: <strong id="stSpins">0</strong> · Incidents won: <strong id="stWon">0</strong> · Lucky breaks: <strong class="g" id="stLucky">0</strong></p>
+  </section>
+</main>
+
+<section class="card book" aria-label="Incident sticker book">
+  <div class="card-head"><h2>Incident sticker book</h2><span><strong id="bookCount" style="color:var(--cream);font-size:18px">0 / 15</strong></span></div>
+  <div class="bar"><div id="bookBar" style="width:0%"></div></div>
+  <div class="stickers" id="stickers"></div>
+  <span class="badge" id="badge">Incident Commander</span>
+  <p style="margin:4px 0 0;font-size:14px;color:var(--lav)">Collect all 15 to become <strong style="color:var(--gold)">Incident Commander</strong>. Sometimes several incidents happen at once — then you win a free round and keep everything.</p>
+</section>
+
+<footer>Not affiliated with GitHub. No servers were harmed. Odds from 297 public incidents on <a href="https://www.githubstatus.com/history">githubstatus.com</a>, Nov 2025 – Nov 2026, sized by the main service each incident hit. Median time to fix: 78 minutes. Hug your SRE today.</footer>
+
+<dialog id="result" aria-labelledby="rTitle">
+  <p class="r-head" id="rHead">Ding! Ding! Ding!</p>
+  <p class="r-kicker" id="rKicker">Congratulations, you've won</p>
+  <h2 class="r-title" id="rTitle"></h2>
+  <p class="r-joke" id="rJoke"></p>
+  <div class="haul" id="rHaul"></div>
+  <div class="status">
+    <div class="status-top"><span class="chip" id="rChip">Investigating</span><span id="rTime"></span></div>
+    <p id="rUpdate"></p>
+  </div>
+  <div class="facts" id="rFacts"></div>
+  <div class="r-btns">
+    <button class="big" id="againBtn" type="button">Spin again</button>
+    <button class="ghost gold" id="shareBtn" type="button">Share my misfortune</button>
+    <button class="ghost" id="closeBtn" type="button">Close</button>
+  </div>
+</dialog>
+
+<div class="combo" id="combo" aria-hidden="true">
+  <span class="meanwhile">Meanwhile, elsewhere on GitHub…</span>
+  <div class="x" id="comboX">2×</div>
+  <h2>Multiple incidents!</h2>
+  <p>You've won a free round</p>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="sr" id="live" aria-live="assertive"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<script>
+(() => {
+'use strict';
+const SLICES = [
+  {id:'copilot', deg:78, color:'#FF3D7F', ink:'#FFF4E0', copilot:true, label:'Copilot has left the chat', legend:'Copilot — agents, review, chat down', short:'Copilot',
+   joke:'Your pair programmer went for coffee. Indefinitely. Time to remember how for-loops work.',
+   update:'We are investigating reports of degraded performance for Copilot.'},
+  {id:'actions', deg:68, color:'#FFC93C', ink:'#2A1259', label:'Actions stuck in queue', legend:'Actions — runners queued forever', short:'Actions',
+   joke:'Your workflow is 38th in line behind a cron job that runs every minute and does nothing.',
+   update:'We are investigating reports of degraded performance for Actions.'},
+  {id:'model', deg:33, color:'#18C8B4', ink:'#12062A', copilot:true, label:'Model on vacation', legend:'“Upstream model provider” outage', short:'Model nap',
+   joke:'Your favourite model is “experiencing high demand.” So is everyone else’s.',
+   update:'This is due to an issue with an upstream model provider. We are working with them to resolve the issue.'},
+  {id:'issues', deg:30, color:'#7B5CFF', ink:'#FFF4E0', label:'Issues vanished', legend:'Issues — degraded', short:'Issues',
+   joke:'Your backlog is gone. Don’t celebrate — it’s coming back.',
+   update:'We are investigating reports of degraded performance for Issues.'},
+  {id:'webhooks', deg:25, color:'#FF7A1A', ink:'#12062A', label:'Webhooks fashionably late', legend:'Webhooks — delayed delivery', short:'Webhooks',
+   joke:'Your deploy webhook will arrive shortly after your retirement party.',
+   update:'We are investigating reports of degraded performance for Webhooks.'},
+  {id:'git', deg:19, color:'#3DA5FF', ink:'#12062A', label:'git push: 500', legend:'Git Operations — push, clone, SSH', short:'git push',
+   joke:'Your commits are perfectly safe. They just live on your laptop now. Forever.',
+   update:'We are currently investigating failures on all Git operations, including both SSH and HTTP.'},
+  {id:'api', deg:19, color:'#A6E22E', ink:'#12062A', label:'API 5xx party', legend:'API Requests — elevated errors', short:'API 5xx',
+   joke:'Every request is a surprise. Mostly a 503-shaped surprise.',
+   update:'We are investigating reports of degraded performance for API Requests.'},
+  {id:'prs', deg:14, color:'#FF5ACD', ink:'#12062A', label:'PRs won’t merge', legend:'Pull Requests — merge queue', short:'PRs',
+   joke:'Approved, green, and going absolutely nowhere. Like a gym membership.',
+   update:'We are investigating reports of degraded performance for Pull Requests.'},
+  {id:'auth', deg:13, color:'#FFE48A', ink:'#2A1259', label:'Logged out, sorry', legend:'Login — tokens, auth, certs', short:'Logged out',
+   joke:'Your token expired. Possibly a certificate too. Nobody is who they say they are anymore.',
+   update:'We are investigating reports of users being unable to sign in.'},
+  {id:'tail', deg:13, color:'#4A2A8C', ink:'#FFF4E0', label:'Search can’t find itself', legend:'Long tail — Billing, Search, CodeQL', short:'Search',
+   joke:'Search is down. You’ll have to remember where you put that function. Good luck.',
+   update:'We are investigating reports of degraded performance for Search.'},
+  {id:'codespaces', deg:11, color:'#E0457B', ink:'#FFF4E0', label:'Codespaces won’t boot', legend:'Codespaces — unavailable', short:'Codespaces',
+   joke:'Your cloud dev environment is now a very expensive loading spinner.',
+   update:'We are investigating reports of degraded availability for Codespaces.'},
+  {id:'dependabot', deg:11, color:'#8FE3FF', ink:'#12062A', label:'Dependabot: 2 days late', legend:'Dependabot + Notifications backlog', short:'Dependabot',
+   joke:'Your dependencies will be updated. Eventually. Next update in 12 hours.',
+   update:'Customers may see delays of up to two days in Dependabot version updates.'},
+  {id:'some', deg:11, color:'#C9B8F0', ink:'#12062A', label:'“Some services”', legend:'“Disruption with some GitHub services”', short:'Some svcs',
+   joke:'Which services? Some. Which users? Some. How bad? Some.',
+   update:'We are investigating reports of issues with service(s): Actions, Feeds, Issues, Profiles, Registry Metadata, Star, User Dashboard.'},
+  {id:'pages', deg:10, color:'#FF9E6B', ink:'#12062A', label:'Pages: 404 chic', legend:'Pages — builds failing', short:'Pages',
+   joke:'Your site is now extremely minimalist. It’s a 404. (This page is on Pages too. Spin gently.)',
+   update:'We are investigating reports of degraded performance for Pages.'},
+  {id:'jackpot', deg:5, color:'#FFF4E0', ink:'#B0124A', label:'All systems OK?!', legend:'Jackpot — nothing is broken (?)', short:'ALL OK?!',
+   joke:'', update:'All Systems Operational'}
+];
+const COMBO_ODDS = 55 / 297; // incidents that hit several services at once
+const C = 350, R = 300;
+const $ = (s) => document.getElementById(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('sto:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('sto:' + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+/* ---------- geometry ---------- */
+let acc = 0;
+SLICES.forEach((s) => { s.start = acc; s.span = s.deg; acc += s.deg; s.mid = s.start + s.span / 2; s.pct = (s.deg / 360 * 100).toFixed(1).replace('.0', '') + '%'; });
+const pt = (deg, r) => { const t = deg * Math.PI / 180; return [C + r * Math.sin(t), C - r * Math.cos(t)]; };
+const wedge = (a, b, r) => { const [x1, y1] = pt(a, r), [x2, y2] = pt(b, r); return `M${C} ${C}L${x1.toFixed(2)} ${y1.toFixed(2)}A${r} ${r} 0 ${b - a > 180 ? 1 : 0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}Z`; };
+const PINS = [];
+SLICES.forEach((s) => { const n = Math.ceil(s.span / 22); for (let k = 0; k < n; k++) PINS.push(s.start + k * s.span / n); });
+const PIN_ROT = PINS.map((p) => ((-p % 360) + 360) % 360);
+
+let svg = '';
+SLICES.forEach((s) => {
+  svg += `<g class="${s.copilot ? 'copilot' : ''}"><path d="${wedge(s.start, s.start + s.span, R)}" fill="${s.color}"/><path class="dim" d="${wedge(s.start, s.start + s.span, R)}"/>` +
+    `<g transform="rotate(${(s.mid - 90).toFixed(2)} ${C} ${C})"><text class="lbl" x="${C + 276}" y="${C}" text-anchor="end" dominant-baseline="central" fill="${s.ink}">${s.label}</text>` +
+    (s.copilot ? `<text class="stamp" x="${C + 276}" y="${C}" text-anchor="end" dominant-baseline="central">Not my problem</text>` : '') + `</g></g>`;
+});
+svg += `<circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="rgba(18,6,42,.35)" stroke-width="8"/>`;
+SLICES.forEach((s) => { const [x1, y1] = pt(s.start, R), [x0, y0] = pt(s.start, 60); svg += `<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="rgba(18,6,42,.28)" stroke-width="2"/>`; });
+PINS.forEach((p) => { const [x, y] = pt(p, 288); svg += `<circle cx="${x.toFixed(1)}" cy="${(y + 2).toFixed(1)}" r="6.5" fill="#8A6A2A"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="#FFF4E0"/>`; });
+const spinnerEl = $('spinner');
+spinnerEl.innerHTML = svg;
+
+let rim = '';
+const RIM_N = 40;
+for (let i = 0; i < RIM_N; i++) { const [x, y] = pt(i * 360 / RIM_N, 326); rim += `<circle class="rimbulb${i === 23 ? ' dud' : ''}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7.5"/>`; }
+$('rim').innerHTML = rim;
+
+const nTop = Math.max(10, Math.min(26, Math.round(Math.min(window.innerWidth, 1040) / 42)));
+['bulbsTop', 'bulbsBot'].forEach((id, row) => {
+  $(id).innerHTML = Array.from({ length: nTop }, (_, i) => `<span class="bulb-h${row === 0 && i === 6 ? ' dud' : ''}"></span>`).join('');
+});
+const BULBS = [...document.querySelectorAll('.bulb-h, .rimbulb')];
+const RIMS = [...document.querySelectorAll('.rimbulb')];
+
+/* ---------- odds + stickers ---------- */
+$('odds').innerHTML = SLICES.map((s) => `<div class="odd${s.copilot ? ' cp' : ''}"><span class="sw" style="background:${s.color}"></span><span class="nm">${s.legend}</span><span class="pc">${s.pct}</span></div>`).join('');
+$('stickers').innerHTML = SLICES.map((s) => `<div class="sticker" id="st-${s.id}"><div class="disc" style="--c:${s.color}">?</div><span>${s.short}</span></div>`).join('');
+let got = new Set(store.get('stickers', []));
+function renderBook(newId) {
+  SLICES.forEach((s) => {
+    const el = $('st-' + s.id), d = el.firstElementChild, has = got.has(s.id);
+    el.classList.toggle('got', has); d.style.background = has ? s.color : ''; d.textContent = has ? '✓' : '?';
+    if (s.id === newId) { el.classList.remove('new'); void el.offsetWidth; el.classList.add('new'); }
+  });
+  $('bookCount').textContent = got.size + ' / 15';
+  $('bookBar').style.width = (got.size / 15 * 100) + '%';
+  $('badge').classList.toggle('show', got.size === 15);
+}
+renderBook();
+
+const stats = store.get('stats', { spins: 0, won: 0, lucky: 0 });
+function renderStats() { $('stSpins').textContent = stats.spins; $('stWon').textContent = stats.won; $('stLucky').textContent = stats.lucky; }
+renderStats();
+
+/* ---------- copilot toggle ---------- */
+const cb = $('usesCopilot');
+cb.checked = store.get('copilot', true);
+function applyCopilot() {
+  const on = cb.checked;
+  $('wheel').classList.toggle('nocopilot', !on);
+  document.querySelectorAll('.odd.cp').forEach((e) => e.classList.toggle('off', !on));
+  const h = $('copilotHint');
+  h.textContent = on ? 'Copilot slices are live ammo. 31% of the wheel is your problem.' : 'Copilot slices are “Not my problem.” You’re off the hook. Enjoy your smug coffee.';
+  h.classList.toggle('free', !on);
+  store.set('copilot', on);
+}
+cb.addEventListener('change', applyCopilot);
+applyCopilot();
+
+/* ---------- audio ---------- */
+let ac = null, master = null, noiseBuf = null;
+let soundOn = store.get('sound', true);
+function ensureAudio() {
+  if (!ac) {
+    try {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
+      const len = Math.floor(ac.sampleRate * 0.03);
+      noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    } catch (e) { ac = null; }
+  }
+  if (ac && ac.state === 'suspended') ac.resume();
+}
+function tickSound(vel) {
+  if (!soundOn || !ac) return;
+  const t = ac.currentTime, v = Math.min(1, vel / 1200);
+  const src = ac.createBufferSource(); src.buffer = noiseBuf;
+  const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1700 + v * 1800; bp.Q.value = 3;
+  const g = ac.createGain(); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+  src.connect(bp).connect(g).connect(master); src.start(t); src.stop(t + 0.05);
+  const o = ac.createOscillator(); o.type = 'triangle';
+  o.frequency.setValueAtTime(1150 + v * 600, t); o.frequency.exponentialRampToValueAtTime(380, t + 0.03);
+  const og = ac.createGain(); og.gain.setValueAtTime(0.22, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+  o.connect(og).connect(master); o.start(t); o.stop(t + 0.04);
+}
+function bell(f, t, vol) {
+  [1, 2.76, 5.4].forEach((m, i) => {
+    const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f * m;
+    const g = ac.createGain(); const v = vol / (i * 2.5 + 1);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1 - i * 0.3);
+    o.connect(g).connect(master); o.start(t); o.stop(t + 1.2);
+  });
+}
+function ding(n) {
+  if (!soundOn || !ac) return;
+  const t = ac.currentTime + 0.02, notes = [1568, 1318.5, 2093];
+  for (let k = 0; k < Math.max(3, n); k++) bell(notes[k % 3], t + k * 0.24, 0.32);
+}
+function tada() {
+  if (!soundOn || !ac) return;
+  const t = ac.currentTime + 0.02;
+  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => bell(f, t + i * 0.09, 0.22));
+}
+function siren() {
+  if (!soundOn || !ac) return;
+  const t = ac.currentTime;
+  const o = ac.createOscillator(); o.type = 'sawtooth';
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400;
+  const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + 0.05); g.gain.setValueAtTime(0.09, t + 1.6); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.9);
+  o.frequency.setValueAtTime(520, t);
+  for (let k = 0; k < 2; k++) { o.frequency.linearRampToValueAtTime(950, t + k * 0.9 + 0.45); o.frequency.linearRampToValueAtTime(520, t + k * 0.9 + 0.9); }
+  o.connect(lp).connect(g).connect(master); o.start(t); o.stop(t + 2);
+}
+function hmm() {
+  if (!soundOn || !ac) return;
+  const t = ac.currentTime;
+  const o = ac.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(220, t); o.frequency.linearRampToValueAtTime(196, t + 0.6);
+  const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+  o.connect(g).connect(master); o.start(t); o.stop(t + 0.85);
+}
+const soundBtn = $('soundBtn');
+function renderSound() {
+  soundBtn.setAttribute('aria-pressed', String(soundOn));
+  soundBtn.setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off');
+  soundBtn.querySelectorAll('.wave').forEach((p) => { p.style.display = soundOn ? '' : 'none'; });
+  soundBtn.querySelector('.mute').style.display = soundOn ? 'none' : '';
+}
+soundBtn.addEventListener('click', () => { soundOn = !soundOn; store.set('sound', soundOn); ensureAudio(); renderSound(); if (soundOn) tickSound(300); });
+renderSound();
+
+/* ---------- wheel motion ---------- */
+let rot = Math.random() * 360, vel = 0, spinning = false, flap = 0;
+const flapper = $('flapper');
+function setRot(r, v) {
+  const prev = rot;
+  if (r !== prev) {
+    let hits = 0;
+    const lo = Math.min(prev, r), hi = Math.max(prev, r);
+    for (const q of PIN_ROT) hits += Math.floor((hi - q) / 360) - Math.floor((lo - q) / 360);
+    if (hits > 0) { tickSound(Math.abs(v)); flap = -Math.min(30, 12 + Math.abs(v) / 40) * Math.sign(r - prev || 1); }
+  }
+  rot = r; vel = v;
+  spinnerEl.setAttribute('transform', `rotate(${(rot % 360).toFixed(3)} ${C} ${C})`);
+}
+setRot(rot, 0);
+const sliceAt = (local) => { local = ((local % 360) + 360) % 360; return SLICES.find((s) => local >= s.start && local < s.start + s.span) || SLICES[SLICES.length - 1]; };
+function pickTarget() {
+  for (;;) {
+    const t = Math.random() * 360, s = sliceAt(t), m = Math.min(2, s.span * 0.2);
+    if (t - s.start > m && s.start + s.span - t > m) return t;
+  }
+}
+const controls = ['hub', 'spinBtn', 'dnsBtn', 'againBtn'].map($);
+function setBusy(b) { spinning = b; controls.forEach((c) => { c.disabled = b; }); }
+
+function spin(opts) {
+  opts = opts || {};
+  if (spinning) return;
+  ensureAudio();
+  if ($('result').open) closeResult(true);
+  setBusy(true);
+  stats.spins++; store.set('stats', stats); renderStats();
+  let turns = opts.turns != null ? opts.turns : 5 + Math.floor(Math.random() * 3);
+  let dur = opts.dur != null ? opts.dur : 5200 + Math.random() * 1400;
+  if (RM) { turns = 1; dur = 900; }
+  const t = pickTarget(), r0 = rot;
+  const want = ((-t % 360) + 360) % 360, cur = ((r0 % 360) + 360) % 360;
+  let delta = want - cur; if (delta < 0) delta += 360;
+  const r1 = r0 + turns * 360 + delta;
+  const ease = (x) => 1 - Math.pow(1 - x, 4);
+  const start = performance.now(); let last = start;
+  $('live').textContent = 'Spinning…';
+  function frame(now) {
+    const x = Math.min(1, (now - start) / dur), r = r0 + (r1 - r0) * ease(x);
+    const dt = Math.max(1, now - last) / 1000; last = now;
+    setRot(r, (r - rot) / dt);
+    if (x < 1) return requestAnimationFrame(frame);
+    if (RM) return land(sliceAt(t));
+    // the last pin catches: rock back a hair
+    const rs = performance.now(), back = 1.1;
+    (function rock(n) {
+      const y = Math.min(1, (n - rs) / 260), rr = r1 - back * Math.sin(y * Math.PI / 2);
+      setRot(rr, 0);
+      if (y < 1) requestAnimationFrame(rock); else { vel = 0; land(sliceAt(t)); }
+    })(rs);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* drag-flick */
+const wrap = $('wheelWrap');
+let drag = null;
+const angOf = (e) => { const b = wrap.getBoundingClientRect(); return Math.atan2(e.clientX - (b.left + b.width / 2), -(e.clientY - (b.top + b.height / 2))) * 180 / Math.PI; };
+spinnerEl.addEventListener('pointerdown', (e) => {
+  if (spinning) return;
+  ensureAudio();
+  drag = { a: angOf(e), base: rot, acc: 0, samples: [{ t: performance.now(), r: rot }] };
+  wrap.classList.add('dragging');
+  spinnerEl.setPointerCapture(e.pointerId);
+});
+spinnerEl.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  const a = angOf(e); let d = a - drag.a; if (d > 180) d -= 360; if (d < -180) d += 360;
+  drag.a = a; drag.acc += d;
+  const now = performance.now(), r = drag.base + drag.acc, s = drag.samples[drag.samples.length - 1];
+  setRot(r, (r - s.r) / Math.max(0.001, (now - s.t) / 1000));
+  drag.samples.push({ t: now, r }); if (drag.samples.length > 12) drag.samples.shift();
+});
+function endDrag() {
+  if (!drag) return;
+  wrap.classList.remove('dragging');
+  const now = performance.now(), recent = drag.samples.filter((s) => now - s.t < 120);
+  drag = null;
+  if (recent.length < 2) return;
+  const v = (recent[recent.length - 1].r - recent[0].r) / Math.max(0.016, (recent[recent.length - 1].t - recent[0].t) / 1000);
+  if (Math.abs(v) < 250) return;
+  if (v < 0) toast('Wrong way! The wheel only goes forward. Like time. And incident counts.');
+  spin({ turns: Math.max(3, Math.min(10, Math.round(Math.abs(v) / 260))) });
+}
+spinnerEl.addEventListener('pointerup', endDrag);
+spinnerEl.addEventListener('pointercancel', endDrag);
+
+/* ---------- bulbs + flapper loop ---------- */
+let step = 0, phase = 0, flashUntil = 0, lastT = performance.now();
+function loop(now) {
+  const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+  flap += (0 - flap) * Math.min(1, dt * 14);
+  flapper.style.transform = `translateX(-50%) rotate(${flap.toFixed(2)}deg)`;
+  if (!RM) {
+    const siren = document.body.classList.contains('siren');
+    const flashing = now < flashUntil;
+    const rate = flashing ? 7 : siren ? 9 : spinning ? 3 + Math.min(24, Math.abs(vel) / 70) : 2.2;
+    phase += dt * rate;
+    if (phase >= 1) {
+      phase %= 1; step++;
+      for (let i = 0; i < BULBS.length; i++) BULBS[i].classList.toggle('on', flashing ? step % 2 === 0 : (i + step) % 2 === 0);
+    }
+  }
+  requestAnimationFrame(loop);
+}
+if (RM) BULBS.forEach((b, i) => b.classList.toggle('on', i % 2 === 0));
+requestAnimationFrame(loop);
+
+/* ---------- landing ---------- */
+let haul = [];
+const comboEl = $('combo');
+function land(s) {
+  haul.push(s);
+  const isNew = !got.has(s.id);
+  got.add(s.id); store.set('stickers', [...got]); renderBook(isNew ? s.id : null);
+  if (isNew && got.size === 15) setTimeout(() => toast('Sticker book complete! You are now an Incident Commander.'), 1500);
+  if (s.id === 'jackpot') stats.lucky++; else stats.won++;
+  store.set('stats', stats); renderStats();
+  document.documentElement.style.setProperty('--win', s.color);
+  document.body.classList.add('win');
+  flashUntil = performance.now() + 900;
+
+  if (s.id !== 'jackpot' && haul.length < 6 && Math.random() < COMBO_ODDS) {
+    document.body.classList.add('siren');
+    $('comboX').textContent = (haul.length + 1) + '×';
+    comboEl.classList.add('show');
+    $('live').textContent = 'You landed on ' + s.label + '. Multiple incidents! You won a free round.';
+    siren();
+    setTimeout(() => { comboEl.classList.remove('show'); setBusy(false); spin({ turns: 4, dur: 4200 }); }, 2300);
+    return;
+  }
+  setBusy(false);
+  showResult();
+}
+
+const fmtTime = () => { const d = new Date(); return 'Today, ' + String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0') + ' UTC'; };
+let shareText = '';
+function showResult() {
+  const s = haul[haul.length - 1];
+  const incidents = haul.filter((h) => h.id !== 'jackpot');
+  const usesCp = cb.checked;
+  const mine = incidents.filter((h) => !(h.copilot && !usesCp));
+  const chip = $('rChip');
+  chip.className = 'chip';
+  $('rHaul').innerHTML = '';
+  $('rTime').textContent = fmtTime() + ' · minor';
+  let colors = [s.color, '#FFC93C', '#FF3D7F', '#18C8B4'];
+
+  if (haul.length > 1) {
+    $('rHead').textContent = 'Cascading failure!';
+    $('rKicker').textContent = haul.length + '× combo — you won all of these:';
+    $('rTitle').textContent = haul.length + ' incidents at once';
+    $('rJoke').textContent = mine.length < incidents.length ? 'The Copilot ones are not your problem, though. Small mercies.' : 'Grab a coffee. Grab several.';
+    $('rHaul').innerHTML = haul.map((h, i) => `<div class="ticket" style="background:${h.color};color:${h.ink}"><small>${i ? 'Free round' : 'Spin 1'}</small>${h.label}</div>`).join('');
+    $('rUpdate').textContent = 'We are investigating reports of issues with service(s): ' + haul.map((h) => h.short).join(', ') + '.';
+    $('rTime').textContent = fmtTime() + ' · major';
+    colors = haul.map((h) => h.color);
+    shareText = `I spun the outage and won ${haul.length} incidents at once: ${haul.map((h) => h.label).join(', ')}.`;
+    ding(haul.length + 2); confetti(colors, 260);
+  } else if (s.id === 'jackpot') {
+    $('rHead').textContent = '…';
+    $('rKicker').textContent = 'Against all odds';
+    $('rTitle').textContent = 'All Systems Operational';
+    $('rJoke').textContent = '';
+    chip.classList.add('ok'); chip.textContent = 'Operational';
+    $('rUpdate').textContent = 'All Systems Operational';
+    $('rTime').textContent = fmtTime();
+    shareText = 'I spun the outage and got… All Systems Operational. Suspicious.';
+    setTimeout(() => { $('rJoke').textContent = '…suspicious.'; hmm(); }, 1700);
+  } else if (s.copilot && !usesCp) {
+    $('rHead').textContent = 'Phew!';
+    $('rKicker').textContent = s.label + ', but…';
+    $('rTitle').textContent = 'You’re off the hook';
+    $('rJoke').textContent = 'You don’t use Copilot. You write your own code like it’s 2019. Enjoy your smug coffee.';
+    chip.classList.add('free'); chip.textContent = 'Not my problem';
+    $('rUpdate').textContent = s.update;
+    colors = ['#6F4E37', '#C69C6D', '#FFF4E0', '#3B2A20'];
+    shareText = `I spun the outage and landed on “${s.label}”. Not my problem — I don’t use Copilot.`;
+    tada(); confetti(colors, 140);
+  } else {
+    $('rHead').textContent = 'Ding! Ding! Ding!';
+    $('rKicker').textContent = 'Congratulations, you’ve won';
+    $('rTitle').textContent = s.label;
+    $('rJoke').textContent = s.joke;
+    $('rUpdate').textContent = s.update;
+    shareText = `I spun the outage and won: ${s.label}.`;
+    ding(3); confetti(colors, 180);
+  }
+  if (!chip.classList.contains('ok') && !chip.classList.contains('free')) chip.textContent = 'Investigating';
+  const streak = stats.won;
+  $('rFacts').innerHTML = haul.length > 1
+    ? `<span>Odds of a pile-up: <strong>${Math.round(COMBO_ODDS * 100)}% per spin</strong></span><span>Record: <strong>7 in one day</strong> (Feb 9, 2026)</span>`
+    : s.id === 'jackpot'
+      ? `<span>Odds of this prize: <strong>${s.pct}</strong></span><span>Longest real quiet streak: <strong>~8 days</strong></span>`
+      : `<span>Odds of this prize: <strong>${s.pct}</strong></span><span>Median fix: <strong>78 min ¯\\_(ツ)_/¯</strong></span><span>Incidents won: <strong style="color:var(--gold)">${streak}</strong></span>`;
+  $('live').textContent = $('rKicker').textContent + ' ' + $('rTitle').textContent + '. ' + $('rJoke').textContent;
+  $('result').showModal();
+  $('againBtn').focus();
+}
+function closeResult(silent) {
+  if ($('result').open) $('result').close();
+  haul = [];
+  document.body.classList.remove('siren', 'win');
+}
+$('result').addEventListener('close', () => { haul = []; document.body.classList.remove('siren', 'win'); });
+$('closeBtn').addEventListener('click', () => closeResult());
+$('againBtn').addEventListener('click', () => { closeResult(); spin(); });
+$('shareBtn').addEventListener('click', async () => {
+  const url = location.href.split('#')[0];
+  const text = shareText + ' What GitHub incident will you get today?';
+  try {
+    if (navigator.share) { await navigator.share({ title: 'Spin the Outage', text, url }); return; }
+    await navigator.clipboard.writeText(text + ' ' + url); toast('Copied. Spread the misfortune.');
+  } catch (e) { if (e && e.name !== 'AbortError') toast('Couldn’t copy. The clipboard is experiencing degraded performance.'); }
+});
+
+/* ---------- buttons ---------- */
+$('hub').addEventListener('click', () => spin());
+$('spinBtn').addEventListener('click', () => spin());
+$('dnsBtn').addEventListener('click', () => { toast('It’s always DNS.'); spin({ turns: 14, dur: 7600 }); });
+$('refreshBtn').addEventListener('click', () => {
+  if (!RM) { document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); }
+  flashUntil = performance.now() + 600;
+  toast('“If you do see failing runs, please retry and they might succeed.” — GitHub, Jan 2026');
+});
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'Space' || e.repeat) return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (['button', 'input', 'a', 'textarea', 'select'].includes(tag) || $('result').open) return;
+  e.preventDefault(); spin();
+});
+
+/* ---------- toast ---------- */
+let toastT = 0;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
+
+/* ---------- confetti ---------- */
+const cv = $('confetti'), cx = cv.getContext('2d');
+let parts = [], confettiOn = false;
+function confetti(colors, n) {
+  if (RM) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  for (let i = 0; i < n; i++) {
+    const fromLeft = i % 2 === 0;
+    parts.push({ x: fromLeft ? -10 : innerWidth + 10, y: innerHeight * (0.35 + Math.random() * 0.3),
+      vx: (fromLeft ? 1 : -1) * (5 + Math.random() * 9), vy: -(7 + Math.random() * 10),
+      w: 7 + Math.random() * 8, h: 4 + Math.random() * 6, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4,
+      c: colors[i % colors.length], round: Math.random() < 0.3, life: 0 });
+  }
+  if (!confettiOn) { confettiOn = true; requestAnimationFrame(drawConfetti); }
+}
+function drawConfetti() {
+  cx.clearRect(0, 0, innerWidth, innerHeight);
+  parts = parts.filter((p) => p.y < innerHeight + 40 && p.life < 400);
+  for (const p of parts) {
+    p.life++; p.vy += 0.32; p.vx *= 0.985; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c;
+    if (p.round) { cx.beginPath(); cx.arc(0, 0, p.h / 1.4, 0, Math.PI * 2); cx.fill(); }
+    else { cx.scale(1, Math.cos(p.life * 0.15)); cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); }
+    cx.restore();
+  }
+  if (parts.length) requestAnimationFrame(drawConfetti); else { confettiOn = false; cx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+})();
+</script>
+</body>
+</html>
