@@ -126,6 +126,18 @@ main{width:100%; max-width:1240px; display:flex; flex-wrap:wrap; justify-content
 .badge{display:none; align-self:flex-start; padding:6px 14px; border-radius:999px; background:var(--gold); color:var(--deep); font-family:'Bungee',sans-serif; font-size:14px}
 .badge.show{display:inline-block}
 
+.others{width:100%; max-width:1040px; padding:0}
+.others .card-head{padding:16px 22px 4px}
+.others h2{font-size:15px; letter-spacing:.12em}
+.card-head .allok{font-size:13px; font-weight:700; color:#3EDB8A}
+.svc{display:flex; align-items:center; gap:12px; padding:12px 22px; border-top:1px solid var(--line); color:var(--cream); text-decoration:none}
+a.svc:hover{background:#341670}
+a.svc:hover b{color:var(--gold)}
+.svc i{flex:0 0 auto; width:10px; height:10px; border-radius:50%; background:#3EDB8A; box-shadow:0 0 8px #3EDB8A}
+.svc b{flex:0 0 auto; min-width:118px; font-size:15px}
+.svc span{flex:1 1 auto; font-size:13px; color:var(--lav)}
+.svc em{flex:0 0 auto; font-style:normal; font-size:12px; font-weight:700; color:#3EDB8A}
+@media (max-width:640px){.svc{flex-wrap:wrap; gap:4px 10px}.svc span{flex-basis:100%; order:3; padding-left:20px}.svc em{margin-left:auto}}
 .fine{margin:0 0 14px; font-size:10.5px; color:#7A68AE; letter-spacing:.01em}
 footer{font-size:13px; color:#8F7BC4; text-align:center; max-width:760px; line-height:1.5}
 
@@ -249,6 +261,14 @@ dialog[open]{animation:drop .5s cubic-bezier(.3,1.5,.5,1)}
   <div class="stickers" id="stickers"></div>
   <span class="badge" id="badge">Incident Commander</span>
   <p style="margin:4px 0 0;font-size:14px;color:var(--lav)">Collect all 15 to become <strong style="color:var(--gold)">Incident Commander</strong>. Sometimes several incidents happen at once — then you win a free round and keep everything.</p>
+</section>
+
+<section class="card others" aria-label="Other things I built">
+  <div class="card-head"><h2>Other things I built</h2><span class="allok">● All systems operational (maintainer sleeping)</span></div>
+  <a class="svc" href="https://erango.github.io/kompass/"><i></i><b>Kompass</b><span>Fast, native Kubernetes desktop app for macOS. A lightweight Lens alternative, built in Rust.</span><em>Operational</em></a>
+  <a class="svc" href="https://erango.github.io/coo/"><i></i><b>Coo</b><span>Every business, every inbox, one calm Mac app.</span><em>Operational</em></a>
+  <a class="svc" href="https://github.com/erango/monitor-glue"><i></i><b>Monitor Glue</b><span>Remembers where your windows go on each external monitor and puts them back when you reconnect.</span><em>Operational</em></a>
+  <div class="svc"><i></i><b>TV Tracker</b><span>Tracks your shows and tells you when the next episode drops. Invite only, for now.</span><em>Operational</em></div>
 </section>
 
 <footer><p class="fine">*Winner of degraded performance. Prizes are non-transferable, non-refundable and non-operational. Uptime not included. Past incidents are a pretty good predictor of future incidents.</p>Not affiliated with GitHub. No servers were harmed. Odds from 297 public incidents on <a href="https://www.githubstatus.com/history">githubstatus.com</a>, Nov 2025 – Nov 2026, sized by the main service each incident hit. Median time to fix: 78 minutes. Hug your SRE today.</footer>
