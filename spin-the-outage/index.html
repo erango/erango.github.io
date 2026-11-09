@@ -126,6 +126,7 @@ main{width:100%; max-width:1240px; display:flex; flex-wrap:wrap; justify-content
 .badge{display:none; align-self:flex-start; padding:6px 14px; border-radius:999px; background:var(--gold); color:var(--deep); font-family:'Bungee',sans-serif; font-size:14px}
 .badge.show{display:inline-block}
 
+.fine{margin:0 0 14px; font-size:10.5px; color:#7A68AE; letter-spacing:.01em}
 footer{font-size:13px; color:#8F7BC4; text-align:center; max-width:760px; line-height:1.5}
 
 /* result dialog */
@@ -192,7 +193,7 @@ dialog[open]{animation:drop .5s cubic-bezier(.3,1.5,.5,1)}
   <p class="eyebrow">Live from the status page</p>
   <h1>Spin the <span>Outage</span></h1>
   <p class="sub">What GitHub incident will you get today?</p>
-  <p class="tag">Every spin a winner.* <span>*Winner of degraded performance.</span></p>
+  <p class="tag">Every spin a winner.*</p>
 </header>
 
 <main>
@@ -250,7 +251,7 @@ dialog[open]{animation:drop .5s cubic-bezier(.3,1.5,.5,1)}
   <p style="margin:4px 0 0;font-size:14px;color:var(--lav)">Collect all 15 to become <strong style="color:var(--gold)">Incident Commander</strong>. Sometimes several incidents happen at once — then you win a free round and keep everything.</p>
 </section>
 
-<footer>Not affiliated with GitHub. No servers were harmed. Odds from 297 public incidents on <a href="https://www.githubstatus.com/history">githubstatus.com</a>, Nov 2025 – Nov 2026, sized by the main service each incident hit. Median time to fix: 78 minutes. Hug your SRE today.</footer>
+<footer><p class="fine">*Winner of degraded performance. Prizes are non-transferable, non-refundable and non-operational. Uptime not included. Past incidents are a pretty good predictor of future incidents.</p>Not affiliated with GitHub. No servers were harmed. Odds from 297 public incidents on <a href="https://www.githubstatus.com/history">githubstatus.com</a>, Nov 2025 – Nov 2026, sized by the main service each incident hit. Median time to fix: 78 minutes. Hug your SRE today.</footer>
 
 <dialog id="result" aria-labelledby="rTitle">
   <p class="r-head" id="rHead">Ding! Ding! Ding!</p>
